@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# Secret & Environment Variables
+.env
+.env.local
+.env.*.local
+
+# Executables & Binaries
+tools/
+*.exe
+*.dll
+
+# Heavy AI model weights
+models/
+*.bin
+*.param
+
+# Video and Media Assets
+*.mp4
+*.mkv
+*.avi
+*.mov
+*.flv
+*.webm
+Test/
+uploads/
+
+# Run artifacts & temporary caches
+data/runs/

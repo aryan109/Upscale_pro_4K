@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upscale Pro 4K - Self-Improving AI Video Upscaler</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            },
+            accent: {
+              cyan: '#06b6d4',
+              teal: '#14b8a6',
+              purple: '#a855f7',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #0b0f19;
+      color: #e2e8f0;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    .glass-card {
+      background: rgba(19, 27, 46, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 0.75rem;
+    }
+    .glass-nav {
+      background: rgba(11, 15, 25, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .terminal-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .terminal-scroll::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+    .active-tab {
+      background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
+      color: white !important;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+
+  <!-- Header / Navigation -->
+  <header class="glass-nav sticky top-0 z-50 px-6 py-3.5">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 via-indigo-500 to-accent-cyan flex items-center justify-center shadow-lg shadow-brand-500/20 text-white font-extrabold text-xl">
+          4K
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-xl font-bold tracking-tight text-white">Upscale Pro 4K</h1>
+            <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-indigo-900/60 text-indigo-300 border border-indigo-700/50">Vulkan AI</span>
+          </div>
+          <p class="text-xs text-slate-400">Smart Self-Improving Video Upscaling Studio</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex items-center bg-slate-900/80 p-1 rounded-xl border border-slate-800 space-x-1">
+        <button onclick="switchTab('studio')" id="tab-studio" class="active-tab px-4 py-2 rounded-lg text-sm text-slate-300 transition-all flex items-center space-x-2">
+          <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
+          <span>Studio</span>
+        </button>
+        <button onclick="switchTab('runs')" id="tab-runs" class="px-4 py-2 rounded-lg text-sm text-slate-300 hover:text-white transition-all flex items-center space-x-2">
+          <i class="fa-solid fa-trophy text-xs"></i>
+          <span>Runs & Tournaments</span>
+        </button>
+        <button onclick="switchTab('models')" id="tab-models" class="px-4 py-2 rounded-lg text-sm text-slate-300 hover:text-white transition-all flex items-center space-x-2">
+          <i class="fa-solid fa-microchip text-xs"></i>
+          <span>AI Models</span>
+        </button>
+        <button onclick="switchTab('architecture')" id="tab-architecture" class="px-4 py-2 rounded-lg text-sm text-slate-300 hover:text-white transition-all flex items-center space-x-2">
+          <i class="fa-solid fa-circle-info text-xs"></i>
+          <span>Architecture</span>
+        </button>
+      </nav>
+
+      <!-- System Status Pills -->
+      <div id="system-status" class="hidden sm:flex items-center space-x-3 text-xs">
+        <div class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-slate-300">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span id="engine-status-text">GPU Ready</span>
+        </div>
+        <div class="px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-slate-300">
+          <span id="models-count-text">20+ Models</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+
+    <!-- ===================================================================== -->
+    <!-- TAB 1: STUDIO -->
+    <!-- ===================================================================== -->
+    <div id="view-studio" class="space-y-8">
+
+      <!-- Step 1 & 2: Input Video & AI Diagnostic Analysis -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Input Selection Panel -->
+        <div class="lg:col-span-5 space-y-4">
+          <div class="glass-card p-6 space-y-4">
+            <h2 class="text-base font-semibold text-white flex items-center space-x-2">
+              <span class="w-6 h-6 rounded-full bg-brand-500/20 text-brand-400 text-xs flex items-center justify-center font-bold">1</span>
+              <span>Select or Upload Video</span>
+            </h2>
+
+            <!-- Existing Videos Select -->
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1.5">Choose from workspace or sample videos:</label>
+              <div class="flex gap-2">
+                <select id="video-select" onchange="onVideoSelectChanged()" class="flex-1 bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-brand-500">
+                  <option value="">-- Choose video --</option>
+                </select>
+                <button onclick="loadVideosList()" title="Refresh video list" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 border border-slate-700">
+                  <i class="fa-solid fa-arrows-rotate text-xs"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="relative flex py-1 items-center">
+              <div class="flex-grow border-t border-slate-800"></div>
+              <span class="flex-shrink mx-3 text-xs uppercase tracking-wider text-slate-500 font-medium">Or Upload New</span>
+              <div class="flex-grow border-t border-slate-800"></div>
+            </div>
+
+            <!-- Drag & Drop Upload Zone -->
+            <div id="dropzone" onclick="document.getElementById('file-input').click()" class="border-2 border-dashed border-slate-700 hover:border-brand-500/80 rounded-xl p-5 text-center cursor-pointer transition-colors bg-slate-900/40">
+              <input type="file" id="file-input" accept="video/*" class="hidden" onchange="handleFileUpload(event)">
+              <div class="space-y-1.5">
+                <i class="fa-solid fa-cloud-arrow-up text-2xl text-slate-400"></i>
+                <p class="text-xs text-slate-300 font-medium">Click or drag & drop a video file</p>
+                <p class="text-[11px] text-slate-500">MP4, MOV, MKV, AVI, WebM</p>
+              </div>
+              <div id="upload-progress" class="hidden mt-3 text-left">
+                <div class="flex justify-between text-xs text-slate-400 mb-1">
+                  <span id="upload-filename">Uploading...</span>
+                  <span id="upload-pct">0%</span>
+                </div>
+                <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                  <div id="upload-bar" class="bg-brand-500 h-full w-0 transition-all"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Video Player Preview -->
+            <div id="preview-container" class="hidden space-y-2 pt-2">
+              <div class="flex items-center justify-between text-xs text-slate-400">
+                <span class="font-medium">Source Video Preview</span>
+                <span id="preview-path" class="text-slate-500 truncate max-w-[200px]"></span>
+              </div>
+              <div class="aspect-video bg-black rounded-lg overflow-hidden border border-slate-800">
+                <video id="source-player" controls class="w-full h-full object-contain"></video>
+              </div>
+            </div>
+
+            <!-- Analyze Trigger -->
+            <button id="btn-analyze" onclick="probeSelectedVideo()" disabled class="w-full py-2.5 px-4 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium transition flex items-center justify-center space-x-2 border border-slate-700">
+              <i class="fa-solid fa-stethoscope text-xs text-accent-cyan"></i>
+              <span>Run AI Video Diagnostic</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- AI Diagnostic Results Panel -->
+        <div class="lg:col-span-7 space-y-4">
+          <div class="glass-card p-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <h2 class="text-base font-semibold text-white flex items-center space-x-2">
+                <span class="w-6 h-6 rounded-full bg-brand-500/20 text-brand-400 text-xs flex items-center justify-center font-bold">2</span>
+                <span>AI Video Diagnosis & Feasibility</span>
+              </h2>
+              <span id="diagnostic-badge" class="px-2.5 py-0.5 text-xs font-medium rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+                Awaiting Analysis
+              </span>
+            </div>
+
+            <!-- Placeholder State -->
+            <div id="diagnostic-empty" class="py-12 text-center text-slate-500 space-y-2">
+              <i class="fa-solid fa-magnifying-glass-chart text-3xl opacity-40"></i>
+              <p class="text-sm">Select or upload a video and click "Run AI Video Diagnostic"</p>
+              <p class="text-xs text-slate-600">The analyzer checks true detail resolution, compression artifacts, noise, banding, and 4K feasibility.</p>
+            </div>
+
+            <!-- Diagnostic Content (Hidden until probed) -->
+            <div id="diagnostic-content" class="hidden space-y-4">
+              <!-- Key Metrics Grid -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
+                  <div class="text-[11px] text-slate-400 font-medium">Source Resolution</div>
+                  <div id="diag-res" class="text-base font-bold text-white mt-0.5">-</div>
+                  <div id="diag-codec" class="text-[10px] text-slate-500 mt-0.5">-</div>
+                </div>
+
+                <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
+                  <div class="text-[11px] text-slate-400 font-medium">True Detail</div>
+                  <div id="diag-detail" class="text-base font-bold text-accent-cyan mt-0.5">-</div>
+                  <div id="diag-fakehd" class="text-[10px] text-slate-500 mt-0.5">-</div>
+                </div>
+
+                <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
+                  <div class="text-[11px] text-slate-400 font-medium">Content Profile</div>
+                  <div id="diag-content" class="text-base font-bold text-white mt-0.5 capitalize">-</div>
+                  <div id="diag-anime-score" class="text-[10px] text-slate-500 mt-0.5">-</div>
+                </div>
+
+                <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
+                  <div class="text-[11px] text-slate-400 font-medium">4K Feasibility</div>
+                  <div id="diag-risk" class="text-base font-bold text-emerald-400 mt-0.5 uppercase">-</div>
+                  <div id="diag-factor" class="text-[10px] text-slate-500 mt-0.5">-</div>
+                </div>
+              </div>
+
+              <!-- Feasibility Bar & Message -->
+              <div id="feasibility-alert" class="p-3.5 rounded-lg bg-slate-900/90 border border-slate-800 flex items-start space-x-3">
+                <div id="feasibility-icon" class="text-lg text-emerald-400 mt-0.5">
+                  <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div class="text-xs space-y-1">
+                  <div id="feasibility-title" class="font-semibold text-slate-200">4K Upscaling Feasible</div>
+                  <div id="feasibility-desc" class="text-slate-400 leading-relaxed">
+                    Source contains sufficient genuine resolution. 4K upscaling will yield sharp, high-fidelity results.
+                  </div>
+                </div>
+              </div>
+
+              <!-- Prescription: What to Fix vs What to Preserve -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div class="bg-slate-900/60 p-3 rounded-lg border border-red-900/30 space-y-2">
+                  <div class="text-xs font-semibold text-red-400 flex items-center space-x-1.5">
+                    <i class="fa-solid fa-wrench text-[10px]"></i>
+                    <span>Issues to Fix</span>
+                  </div>
+                  <div id="fix-list" class="space-y-1 text-[11px] text-slate-300">
+                    <!-- Populated dynamically -->
+                  </div>
+                </div>
+
+                <div class="bg-slate-900/60 p-3 rounded-lg border border-emerald-900/30 space-y-2">
+                  <div class="text-xs font-semibold text-emerald-400 flex items-center space-x-1.5">
+                    <i class="fa-solid fa-shield text-[10px]"></i>
+                    <span>Textures & Features to Preserve</span>
+                  </div>
+                  <div id="preserve-list" class="space-y-1 text-[11px] text-slate-300">
+                    <!-- Populated dynamically -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Pipeline Configuration -->
+      <div class="glass-card p-6 space-y-6">
+        <h2 class="text-base font-semibold text-white flex items-center space-x-2">
+          <span class="w-6 h-6 rounded-full bg-brand-500/20 text-brand-400 text-xs flex items-center justify-center font-bold">3</span>
+          <span>Pipeline & Upscale Configuration</span>
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+          <!-- Action Mode -->
+          <div class="space-y-2">
+            <label class="block text-xs font-medium text-slate-300">Execution Mode</label>
+            <div class="space-y-2">
+              <label class="flex items-start p-2.5 rounded-lg bg-slate-900/80 border border-slate-800 hover:border-slate-700 cursor-pointer">
+                <input type="radio" name="action_mode" value="run" checked class="mt-0.5 text-brand-500 focus:ring-0">
+                <div class="ml-2.5 text-xs">
+                  <div class="font-semibold text-white">Full AI Upscale & Render</div>
+                  <div class="text-slate-400 text-[11px]">Runs A/B tournament on hard scenes, picks winner, and renders full 4K video.</div>
+                </div>
+              </label>
+
+              <label class="flex items-start p-2.5 rounded-lg bg-slate-900/80 border border-slate-800 hover:border-slate-700 cursor-pointer">
+                <input type="radio" name="action_mode" value="tournament" class="mt-0.5 text-brand-500 focus:ring-0">
+                <div class="ml-2.5 text-xs">
+                  <div class="font-semibold text-white">Plan & Tournament Only</div>
+                  <div class="text-slate-400 text-[11px]">Tests candidates and produces contact sheet without full-length render.</div>
+                </div>
+              </label>
+
+              <label class="flex items-start p-2.5 rounded-lg bg-slate-900/80 border border-slate-800 hover:border-slate-700 cursor-pointer">
+                <input type="radio" name="action_mode" value="sample_compare" class="mt-0.5 text-brand-500 focus:ring-0">
+                <div class="ml-2.5 text-xs">
+                  <div class="font-semibold text-white">10-Second Sample Comparison</div>
+                  <div class="text-slate-400 text-[11px]">Renders 10s sample and creates side-by-side (Original vs AI) video.</div>
+                </div>
+              </label>
+
+              <label class="flex items-start p-2.5 rounded-lg bg-slate-900/80 border border-slate-800 hover:border-slate-700 cursor-pointer">
+                <input type="radio" name="action_mode" value="quick" class="mt-0.5 text-brand-500 focus:ring-0">
+                <div class="ml-2.5 text-xs">
+                  <div class="font-semibold text-white">Quick Mode (Skip Tournament)</div>
+                  <div class="text-slate-400 text-[11px]">Uses the planner's highest-ranking historical model directly.</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Target Resolution & Geometry -->
+          <div class="space-y-4">
+            <div class="space-y-1.5">
+              <label class="block text-xs font-medium text-slate-300">Target Resolution</label>
+              <select id="cfg-target" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200">
+                <option value="4k" selected>4K UHD (3840 x 2160)</option>
+                <option value="dci4k">DCI 4K (4096 x 2160)</option>
+                <option value="1440p">1440p QHD (2560 x 1440)</option>
+                <option value="1080p">1080p Full HD (1920 x 1080)</option>
+              </select>
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="block text-xs font-medium text-slate-300">Aspect / Fill Mode</label>
+              <select id="cfg-mode" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200">
+                <option value="scale" selected>Scale (Maintain original aspect ratio)</option>
+                <option value="fill">Fill (Crop to fill target frame)</option>
+                <option value="pad">Pad (Pillarbox/letterbox to exact frame)</option>
+              </select>
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="block text-xs font-medium text-slate-300">Fallback Policy</label>
+              <select id="cfg-fallback" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200">
+                <option value="auto" selected>Auto Full HD if 4K is extreme risk</option>
+                <option value="never">Never fallback (Force 4K always)</option>
+                <option value="ask">Ask / Stop if Full HD recommended</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Model & Encode Settings -->
+          <div class="space-y-4">
+            <div class="space-y-1.5">
+              <label class="block text-xs font-medium text-slate-300">Model Selection Override</label>
+              <select id="cfg-model" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200">
+                <option value="" selected>Auto (Tournament selects optimal model)</option>
+              </select>
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="block text-xs font-medium text-slate-300">Video Codec</label>
+              <select id="cfg-codec" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200">
+                <option value="x265" selected>HEVC / x265 10-bit (High Quality)</option>
+                <option value="av1">SVT-AV1 (Next-Gen Compression)</option>
+                <option value="amf">AMD AMF Hardware Encoder (Ultra Fast)</option>
+              </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div class="space-y-1">
+                <label class="block text-xs font-medium text-slate-300">CRF Quality (14-24)</label>
+                <input type="number" id="cfg-crf" value="16" min="10" max="30" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-200">
+              </div>
+
+              <div class="space-y-1">
+                <label class="block text-xs font-medium text-slate-300">Candidate Count</label>
+                <input type="number" id="cfg-candidates" value="3" min="1" max="6" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-200">
+              </div>
+            </div>
+
+            <div class="flex items-center space-x-4 pt-1 text-xs text-slate-300">
+              <label class="flex items-center space-x-2 cursor-pointer">
+                <input type="checkbox" id="cfg-compare" checked class="rounded text-brand-500">
+                <span>Side-by-side compare</span>
+              </label>
+              <label class="flex items-center space-x-2 cursor-pointer">
+                <input type="checkbox" id="cfg-allow-nc" class="rounded text-brand-500">
+                <span>Allow non-commercial</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Start Upscale Button -->
+        <div class="pt-4 border-t border-slate-800 flex items-center justify-between">
+          <div class="text-xs text-slate-400">
+            Engine: <span class="text-indigo-400 font-mono">Upscayl Vulkan NCNN</span> (Zero PyTorch overhead)
+          </div>
+          <button id="btn-start" onclick="launchJob()" class="px-8 py-3.5 rounded-xl bg-gradient-to-r from-brand-600 via-indigo-600 to-accent-cyan hover:opacity-95 text-white font-bold text-sm shadow-lg shadow-brand-500/25 transition flex items-center space-x-2.5">
+            <i class="fa-solid fa-play text-xs"></i>
+            <span>Launch Upscale Pipeline</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Job Execution & Console Monitor (Hidden until a job is launched) -->
+      <div id="job-monitor" class="hidden glass-card p-6 space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center space-x-3">
+            <div id="job-status-spinner" class="w-8 h-8 rounded-full border-2 border-brand-500 border-t-transparent animate-spin"></div>
+            <div>
+              <div class="flex items-center space-x-2">
+                <h3 class="text-sm font-bold text-white">Active Pipeline Execution</h3>
+                <span id="job-status-pill" class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-brand-500/20 text-brand-400">Running</span>
+              </div>
+              <p id="job-stage-text" class="text-xs text-slate-400">Initializing...</p>
+            </div>
+          </div>
+          <div class="flex items-center space-x-3">
+            <span id="job-timer" class="text-xs font-mono text-slate-400">00:00</span>
+            <button onclick="cancelActiveJob()" class="px-3 py-1.5 rounded-lg bg-red-900/30 hover:bg-red-800/50 text-red-300 text-xs font-medium border border-red-700/50 transition">
+              <i class="fa-solid fa-stop mr-1"></i> Cancel Job
+            </button>
+          </div>
+        </div>
+
+        <!-- Terminal Console -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <div class="flex items-center space-x-2">
+              <i class="fa-solid fa-terminal text-slate-500"></i>
+              <span class="font-mono">Live Engine Stream</span>
+            </div>
+            <button onclick="clearTerminal()" class="text-[11px] text-slate-500 hover:text-slate-300">Clear</button>
+          </div>
+          <div id="terminal-box" class="h-64 bg-black/90 p-3.5 rounded-lg border border-slate-800 font-mono text-xs text-slate-300 overflow-y-auto terminal-scroll leading-relaxed whitespace-pre-wrap select-text"></div>
+        </div>
+
+        <!-- Results Card (Displays upon job completion) -->
+        <div id="results-card" class="hidden pt-4 border-t border-slate-800 space-y-6">
+          <div class="p-4 rounded-xl bg-emerald-950/40 border border-emerald-800/50 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg">
+                <i class="fa-solid fa-check"></i>
+              </div>
+              <div>
+                <div class="text-sm font-bold text-emerald-300">Pipeline Completed Successfully!</div>
+                <div id="results-summary" class="text-xs text-slate-400">Processed in 0m00s</div>
+              </div>
+            </div>
+            <div class="flex items-center space-x-2">
+              <a id="btn-download-result" href="#" download class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center space-x-2">
+                <i class="fa-solid fa-download"></i>
+                <span>Download Video</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Video Players Grid -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <div class="text-xs font-semibold text-slate-300 flex items-center space-x-2">
+                <i class="fa-solid fa-play text-brand-400"></i>
+                <span>Upscaled 4K Result</span>
+              </div>
+              <div class="aspect-video bg-black rounded-lg overflow-hidden border border-slate-800">
+                <video id="player-upscaled" controls class="w-full h-full object-contain"></video>
+              </div>
+            </div>
+
+            <div id="container-compare-player" class="space-y-2">
+              <div class="text-xs font-semibold text-slate-300 flex items-center space-x-2">
+                <i class="fa-solid fa-columns text-accent-cyan"></i>
+                <span>Before vs After Split-Screen Demo</span>
+              </div>
+              <div class="aspect-video bg-black rounded-lg overflow-hidden border border-slate-800">
+                <video id="player-compare" controls class="w-full h-full object-contain"></video>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tournament Contact Sheet Preview -->
+          <div id="container-tournament-sheet" class="space-y-2">
+            <div class="text-xs font-semibold text-slate-300 flex items-center space-x-2">
+              <i class="fa-solid fa-image text-brand-400"></i>
+              <span>A/B Tournament Contact Sheet (Side-by-Side Candidates)</span>
+            </div>
+            <div class="rounded-lg overflow-hidden border border-slate-800 bg-black/60 p-2 cursor-pointer" onclick="openLightbox(document.getElementById('img-tournament-sheet').src)">
+              <img id="img-tournament-sheet" src="" alt="Tournament Sheet" class="w-full rounded">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 2: RUNS & HISTORY -->
+    <!-- ===================================================================== -->
+    <div id="view-runs" class="hidden space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-bold text-white">Historical Runs & Tournaments</h2>
+          <p class="text-xs text-slate-400">Inspect past runs, tournament results, and train the AI judge with your taste</p>
+        </div>
+        <button onclick="loadRunsHistory()" class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 border border-slate-700 transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-arrows-rotate text-xs"></i>
+          <span>Refresh</span>
+        </button>
+      </div>
+
+      <!-- Runs Table -->
+      <div class="glass-card overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="bg-slate-900/90 text-slate-400 uppercase font-semibold text-[10px] tracking-wider border-b border-slate-800">
+              <tr>
+                <th class="px-4 py-3">Run ID</th>
+                <th class="px-4 py-3">Category</th>
+                <th class="px-4 py-3">Winner Model</th>
+                <th class="px-4 py-3">Score</th>
+                <th class="px-4 py-3">Decision</th>
+                <th class="px-4 py-3">Contact Sheet</th>
+                <th class="px-4 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="runs-table-body" class="divide-y divide-slate-800/60">
+              <tr><td colspan="7" class="px-4 py-8 text-center text-slate-500">Loading runs history...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 3: AI MODELS -->
+    <!-- ===================================================================== -->
+    <div id="view-models" class="hidden space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-bold text-white">AI Model Catalogue & Engine</h2>
+          <p class="text-xs text-slate-400">High-performance Vulkan NCNN models for anime and live-action footage</p>
+        </div>
+        <button onclick="triggerModelUpdateCheck()" class="px-4 py-2 rounded-lg bg-brand-600 hover:bg-brand-500 text-xs text-white font-medium transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-cloud-arrow-down text-xs"></i>
+          <span>Check for New Models</span>
+        </button>
+      </div>
+
+      <!-- Models Table -->
+      <div class="glass-card overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="bg-slate-900/90 text-slate-400 uppercase font-semibold text-[10px] tracking-wider border-b border-slate-800">
+              <tr>
+                <th class="px-4 py-3">Model Name</th>
+                <th class="px-4 py-3">Status</th>
+                <th class="px-4 py-3">Domain</th>
+                <th class="px-4 py-3">Speed Class</th>
+                <th class="px-4 py-3">Licence</th>
+                <th class="px-4 py-3">Trials</th>
+                <th class="px-4 py-3">Wins</th>
+                <th class="px-4 py-3">Measured Speed</th>
+              </tr>
+            </thead>
+            <tbody id="models-table-body" class="divide-y divide-slate-800/60">
+              <tr><td colspan="8" class="px-4 py-8 text-center text-slate-500">Loading models catalogue...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 4: ARCHITECTURE -->
+    <!-- ===================================================================== -->
+    <div id="view-architecture" class="hidden space-y-6">
+      <div class="glass-card p-6 space-y-4">
+        <h2 class="text-lg font-bold text-white">Upscale Pro 4K Engine Architecture</h2>
+        <p class="text-sm text-slate-300 leading-relaxed">
+          There is no single upscaling recipe that suits every video. A 360p social media clip, an interlaced DVD, and clean anime require fundamentally different treatments.
+          Upscale Pro 4K treats every run as an empirical experiment:
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+          <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-2">
+            <div class="text-brand-400 text-sm font-bold flex items-center space-x-2">
+              <i class="fa-solid fa-microscope"></i>
+              <span>1. Multi-Pass Analysis</span>
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Detects true detail resolution (fake HD detection), noise, film grain, compression blocks, banding, interlacing, and content type.
+            </p>
+          </div>
+
+          <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-2">
+            <div class="text-accent-cyan text-sm font-bold flex items-center space-x-2">
+              <i class="fa-solid fa-chess-knight"></i>
+              <span>2. A/B Tournament</span>
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Picks the hardest sample scenes and crops. Multiple candidate models compete head-to-head. An automated judge scores fidelity, detail, texture, flicker, and halos.
+            </p>
+          </div>
+
+          <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-2">
+            <div class="text-emerald-400 text-sm font-bold flex items-center space-x-2">
+              <i class="fa-solid fa-brain"></i>
+              <span>3. Continuous Learning</span>
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Saves tournament scores per source category. Trial models get promoted or retired, speed profiles are calibrated, and human feedback updates judge weights.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Modal / Lightbox for Contact Sheet or Run Report -->
+  <div id="modal-container" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 max-w-4xl w-full max-h-[90vh] rounded-xl overflow-hidden flex flex-col shadow-2xl">
+      <div class="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between">
+        <h3 id="modal-title" class="text-sm font-bold text-white">Modal</h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-white text-sm">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="modal-body" class="p-5 overflow-y-auto space-y-4"></div>
+    </div>
+  </div>
+
+  <!-- JavaScript Application Logic -->
+  <script>
+    let activeJobId = null;
+    let eventSource = null;
+    let timerInterval = null;
+    let jobStartTime = null;
+
+    // Tab switching
+    function switchTab(tabId) {
+      const tabs = ['studio', 'runs', 'models', 'architecture'];
+      tabs.forEach(t => {
+        const view = document.getElementById(`view-${t}`);
+        const btn = document.getElementById(`tab-${t}`);
+        if (t === tabId) {
+          view.classList.remove('hidden');
+          btn.className = 'active-tab px-4 py-2 rounded-lg text-sm transition-all flex items-center space-x-2';
+        } else {
+          view.classList.add('hidden');
+          btn.className = 'px-4 py-2 rounded-lg text-sm text-slate-300 hover:text-white transition-all flex items-center space-x-2';
+        }
+      });
+
+      if (tabId === 'runs') loadRunsHistory();
+      if (tabId === 'models') loadModelsCatalogue();
+    }
+
+    // Load System & Status
+    async function loadSystemStatus() {
+      try {
+        const res = await fetch('/api/system');
+        const data = await res.json();
+        document.getElementById('engine-status-text').innerText = 'Vulkan Engine Active';
+        document.getElementById('models-count-text').innerText = `${data.models_count} Models`;
+      } catch (err) {
+        console.error("System status check failed:", err);
+      }
+    }
+
+    // Load Available Videos
+    async function loadVideosList() {
+      try {
+        const res = await fetch('/api/videos');
+        const data = await res.json();
+        const sel = document.getElementById('video-select');
+        sel.innerHTML = '<option value="">-- Choose video --</option>';
+
+        data.videos.forEach(v => {
+          const opt = document.createElement('option');
+          opt.value = v.path;
+          opt.innerText = `[${v.group}] ${v.name} (${v.size_mb} MB)`;
+          sel.appendChild(opt);
+        });
+
+        // Pre-select first video if available
+        if (data.videos.length > 0 && !sel.value) {
+          sel.value = data.videos[0].path;
+          onVideoSelectChanged();
+        }
+      } catch (err) {
+        console.error("Failed to load videos list:", err);
+      }
+    }
+
+    // Video Selection Change
+    function onVideoSelectChanged() {
+      const path = document.getElementById('video-select').value;
+      const btnAnalyze = document.getElementById('btn-analyze');
+      const previewContainer = document.getElementById('preview-container');
+      const sourcePlayer = document.getElementById('source-player');
+      const previewPath = document.getElementById('preview-path');
+
+      if (path) {
+        btnAnalyze.disabled = false;
+        previewPath.innerText = path.split('\\').pop().split('/').pop();
+        sourcePlayer.src = `/api/media?path=${encodeURIComponent(path)}`;
+        previewContainer.classList.remove('hidden');
+        // Auto trigger diagnostic probe
+        probeSelectedVideo();
+      } else {
+        btnAnalyze.disabled = true;
+        previewContainer.classList.add('hidden');
+        sourcePlayer.src = '';
+      }
+    }
+
+    // File Upload Handler
+    async function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const progressDiv = document.getElementById('upload-progress');
+      const pBar = document.getElementById('upload-bar');
+      const pPct = document.getElementById('upload-pct');
+      const pName = document.getElementById('upload-filename');
+
+      progressDiv.classList.remove('hidden');
+      pName.innerText = file.name;
+      pBar.style.width = '30%';
+      pPct.innerText = '30%';
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        pBar.style.width = '70%';
+        pPct.innerText = '70%';
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        pBar.style.width = '100%';
+        pPct.innerText = '100%';
+
+        setTimeout(async () => {
+          progressDiv.classList.add('hidden');
+          await loadVideosList();
+          document.getElementById('video-select').value = data.path;
+          onVideoSelectChanged();
+        }, 600);
+      } catch (err) {
+        alert("Upload failed: " + err);
+        progressDiv.classList.add('hidden');
+      }
+    }
+
+    // Probe & Analyze Video
+    async function probeSelectedVideo() {
+      const path = document.getElementById('video-select').value;
+      if (!path) return;
+
+      const btnAnalyze = document.getElementById('btn-analyze');
+      btnAnalyze.innerHTML = '<i class="fa-solid fa-spinner animate-spin text-xs"></i> <span>Analyzing Source...</span>';
+      btnAnalyze.disabled = true;
+
+      try {
+        const res = await fetch('/api/probe', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({video_path: path})
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.detail || "Analysis failed");
+        }
+
+        const data = await res.json();
+        renderDiagnosticResults(data);
+      } catch (err) {
+        alert("Diagnostic error: " + err.message);
+      } finally {
+        btnAnalyze.innerHTML = '<i class="fa-solid fa-stethoscope text-xs text-accent-cyan"></i> <span>Run AI Video Diagnostic</span>';
+        btnAnalyze.disabled = false;
+      }
+    }
+
+    // Render Diagnostic Results
+    function renderDiagnosticResults(data) {
+      document.getElementById('diagnostic-empty').classList.add('hidden');
+      document.getElementById('diagnostic-content').classList.remove('hidden');
+
+      const info = data.info;
+      const prof = data.profile;
+      const feas = data.feasibility;
+
+      // Badge
+      const badge = document.getElementById('diagnostic-badge');
+      badge.innerText = prof.category;
+      badge.className = 'px-2.5 py-0.5 text-xs font-semibold rounded-full bg-brand-500/20 text-brand-400 border border-brand-500/40';
+
+      // Source Res
+      document.getElementById('diag-res').innerText = `${info.width}x${info.height}`;
+      document.getElementById('diag-codec').innerText = `${info.codec.toUpperCase()} • ${info.fps.toFixed(2)} fps • ${info.duration_fmt}`;
+
+      // True Detail
+      document.getElementById('diag-detail').innerText = `~${prof.effective_short}p`;
+      const isFake = (info.height - prof.effective_short) > 100;
+      document.getElementById('diag-fakehd').innerText = isFake ? '⚠️ Fake HD detected' : 'Genuine detail resolution';
+
+      // Content Profile
+      document.getElementById('diag-content').innerText = prof.content;
+      document.getElementById('diag-anime-score').innerText = `Anime score: ${prof.anime_score}`;
+
+      // Feasibility & Risk
+      const riskEl = document.getElementById('diag-risk');
+      riskEl.innerText = feas.risk;
+      document.getElementById('diag-factor').innerText = `${feas.factor}x enlargement factor`;
+
+      const riskColors = {
+        low: 'text-emerald-400',
+        medium: 'text-yellow-400',
+        high: 'text-orange-400',
+        extreme: 'text-red-400'
+      };
+      riskEl.className = `text-base font-bold uppercase mt-0.5 ${riskColors[feas.risk] || 'text-white'}`;
+
+      // Feasibility Box
+      const fAlert = document.getElementById('feasibility-alert');
+      const fTitle = document.getElementById('feasibility-title');
+      const fDesc = document.getElementById('feasibility-desc');
+      const fIcon = document.getElementById('feasibility-icon');
+
+      if (feas.risk === 'extreme' || feas.risk === 'high') {
+        fAlert.className = 'p-3.5 rounded-lg bg-orange-950/40 border border-orange-800/50 flex items-start space-x-3';
+        fIcon.className = 'text-lg text-orange-400 mt-0.5';
+        fIcon.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+        fTitle.innerText = `4K Feasibility: ${feas.risk.toUpperCase()} Risk`;
+        fDesc.innerText = `Source holds only ~${prof.effective_short}p of genuine detail. Enlarging to 4K requires a ${feas.factor}x upscale. Full HD (1080p) will look cleaner and avoid AI hallucinations unless 4K is explicitly forced.`;
+      } else {
+        fAlert.className = 'p-3.5 rounded-lg bg-slate-900/90 border border-slate-800 flex items-start space-x-3';
+        fIcon.className = 'text-lg text-emerald-400 mt-0.5';
+        fIcon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+        fTitle.innerText = '4K Upscaling Highly Feasible';
+        fDesc.innerText = `Source resolution is well-suited for 4K reconstruction (${feas.factor}x scale factor). The AI pipeline will preserve natural features while refining details.`;
+      }
+
+      // Fix list
+      const fixList = document.getElementById('fix-list');
+      fixList.innerHTML = '';
+      if (prof.diagnosis.fix.length === 0) {
+        fixList.innerHTML = '<div class="text-slate-500 italic">No major defects found</div>';
+      } else {
+        prof.diagnosis.fix.forEach(f => {
+          fixList.innerHTML += `<div class="flex items-center space-x-1.5"><i class="fa-solid fa-check text-[9px] text-red-400"></i><span>${f}</span></div>`;
+        });
+      }
+
+      // Preserve list
+      const preserveList = document.getElementById('preserve-list');
+      preserveList.innerHTML = '';
+      if (prof.diagnosis.preserve.length === 0) {
+        preserveList.innerHTML = '<div class="text-slate-500 italic">Standard processing</div>';
+      } else {
+        prof.diagnosis.preserve.forEach(p => {
+          preserveList.innerHTML += `<div class="flex items-center space-x-1.5"><i class="fa-solid fa-shield text-[9px] text-emerald-400"></i><span>${p}</span></div>`;
+        });
+      }
+    }
+
+    // Launch Job
+    async function launchJob() {
+      const inputPath = document.getElementById('video-select').value;
+      if (!inputPath) {
+        alert("Please select or upload a video first!");
+        return;
+      }
+
+      const actionMode = document.querySelector('input[name="action_mode"]:checked').value;
+      const target = document.getElementById('cfg-target').value;
+      const mode = document.getElementById('cfg-mode').value;
+      const fallback = document.getElementById('cfg-fallback').value;
+      const model = document.getElementById('cfg-model').value;
+      const codec = document.getElementById('cfg-codec').value;
+      const crf = parseInt(document.getElementById('cfg-crf').value) || 16;
+      const candidates = parseInt(document.getElementById('cfg-candidates').value) || 3;
+      const compare = document.getElementById('cfg-compare').checked;
+      const allow_nc = document.getElementById('cfg-allow-nc').checked;
+
+      const payload = {
+        input_path: inputPath,
+        action_type: actionMode,
+        target: target,
+        mode: mode,
+        fallback: fallback,
+        model: model || null,
+        codec: codec,
+        crf: crf,
+        candidates: candidates,
+        compare: compare,
+        allow_nc: allow_nc,
+        quick: (actionMode === 'quick')
+      };
+
+      try {
+        const btnStart = document.getElementById('btn-start');
+        btnStart.disabled = true;
+
+        const res = await fetch('/api/jobs', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.detail || "Failed to start job");
+        }
+
+        const data = await res.json();
+        activeJobId = data.job_id;
+        startJobMonitoring(activeJobId);
+      } catch (err) {
+        alert("Launch error: " + err.message);
+        document.getElementById('btn-start').disabled = false;
+      }
+    }
+
+    // Start Job Monitoring
+    function startJobMonitoring(jobId) {
+      const monitor = document.getElementById('job-monitor');
+      const terminalBox = document.getElementById('terminal-box');
+      const resultsCard = document.getElementById('results-card');
+
+      monitor.classList.remove('hidden');
+      resultsCard.classList.add('hidden');
+      terminalBox.innerHTML = '';
+      monitor.scrollIntoView({ behavior: 'smooth' });
+
+      jobStartTime = Date.now();
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        const sec = Math.floor((Date.now() - jobStartTime) / 1000);
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
+        document.getElementById('job-timer').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+      }, 1000);
+
+      // Connect SSE
+      if (eventSource) eventSource.close();
+      eventSource = new EventSource(`/api/jobs/${jobId}/stream`);
+
+      eventSource.addEventListener('log', (e) => {
+        appendLog(e.data);
+      });
+
+      eventSource.addEventListener('done', async (e) => {
+        clearInterval(timerInterval);
+        eventSource.close();
+        document.getElementById('btn-start').disabled = false;
+        document.getElementById('job-status-spinner').classList.remove('animate-spin');
+
+        const doneData = JSON.parse(e.data);
+        if (doneData.status === 'completed') {
+          document.getElementById('job-status-pill').innerText = 'Completed';
+          document.getElementById('job-status-pill').className = 'px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/20 text-emerald-400';
+          await fetchAndDisplayJobResults(jobId);
+        } else {
+          document.getElementById('job-status-pill').innerText = doneData.status.toUpperCase();
+          document.getElementById('job-status-pill').className = 'px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-500/20 text-red-400';
+        }
+      });
+    }
+
+    function appendLog(text) {
+      const box = document.getElementById('terminal-box');
+      const line = document.createElement('div');
+      line.innerText = text;
+
+      // Color coding
+      if (text.includes('WINNER') || text.includes('Done in')) {
+        line.className = 'text-emerald-400 font-bold';
+      } else if (text.includes('Analysing') || text.includes('Rendering with')) {
+        line.className = 'text-accent-cyan';
+      } else if (text.includes('FAILED') || text.includes('Error')) {
+        line.className = 'text-red-400';
+      }
+
+      box.appendChild(line);
+      box.scrollTop = box.scrollHeight;
+
+      // Update stage display
+      if (text.includes('Analysing source')) {
+        document.getElementById('job-stage-text').innerText = 'Stage 1/4: Analysing video metrics';
+      } else if (text.includes('Planned candidates')) {
+        document.getElementById('job-stage-text').innerText = 'Stage 2/4: Candidate selection';
+      } else if (text.includes('A/B tournament') || text.includes('Candidate')) {
+        document.getElementById('job-stage-text').innerText = 'Stage 3/4: A/B Tournament & Judging';
+      } else if (text.includes('Rendering with')) {
+        document.getElementById('job-stage-text').innerText = 'Stage 4/4: Full 4K Video Rendering';
+      } else if (text.includes('Comparison video')) {
+        document.getElementById('job-stage-text').innerText = 'Assembling comparison split-screen';
+      }
+    }
+
+    function clearTerminal() {
+      document.getElementById('terminal-box').innerHTML = '';
+    }
+
+    async function cancelActiveJob() {
+      if (!activeJobId) return;
+      if (!confirm("Are you sure you want to cancel the running job?")) return;
+
+      await fetch(`/api/jobs/${activeJobId}/cancel`, {method: 'POST'});
+      document.getElementById('job-stage-text').innerText = 'Cancelling...';
+    }
+
+    // Display Job Results
+    async function fetchAndDisplayJobResults(jobId) {
+      const res = await fetch(`/api/jobs/${jobId}`);
+      const job = await res.json();
+      const resultsCard = document.getElementById('results-card');
+      resultsCard.classList.remove('hidden');
+
+      document.getElementById('results-summary').innerText = `Total time: ${job.duration_fmt} • Status: ${job.status}`;
+
+      if (job.output_video) {
+        const outPlayer = document.getElementById('player-upscaled');
+        outPlayer.src = `/api/media?path=${encodeURIComponent(job.output_video)}`;
+        document.getElementById('btn-download-result').href = `/api/media?path=${encodeURIComponent(job.output_video)}`;
+      }
+
+      const cmpContainer = document.getElementById('container-compare-player');
+      if (job.compare_video) {
+        cmpContainer.classList.remove('hidden');
+        document.getElementById('player-compare').src = `/api/media?path=${encodeURIComponent(job.compare_video)}`;
+      } else {
+        cmpContainer.classList.add('hidden');
+      }
+
+      // Contact sheet
+      const sheetContainer = document.getElementById('container-tournament-sheet');
+      if (job.run_id) {
+        const sheetImg = document.getElementById('img-tournament-sheet');
+        sheetImg.src = `/api/runs/${job.run_id}/sheet`;
+        sheetContainer.classList.remove('hidden');
+      } else {
+        sheetContainer.classList.add('hidden');
+      }
+
+      resultsCard.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Load Runs History
+    async function loadRunsHistory() {
+      const tbody = document.getElementById('runs-table-body');
+      tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-slate-500">Loading runs history...</td></tr>';
+
+      try {
+        const res = await fetch('/api/runs');
+        const data = await res.json();
+
+        if (data.runs.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-slate-500">No past runs recorded yet</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = '';
+        data.runs.forEach(r => {
+          const row = document.createElement('tr');
+          row.className = 'hover:bg-slate-900/50 transition-colors';
+          row.innerHTML = `
+            <td class="px-4 py-3 font-mono font-medium text-slate-200">${r.id}</td>
+            <td class="px-4 py-3 text-slate-400 font-mono">${r.category}</td>
+            <td class="px-4 py-3 font-semibold text-accent-cyan">${r.winner}</td>
+            <td class="px-4 py-3">${r.best_score ? `<span class="px-2 py-0.5 rounded bg-brand-900/50 text-brand-300 font-bold">${r.best_score}</span>` : '-'}</td>
+            <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-[11px] font-semibold ${r.decision.includes('4k') ? 'bg-emerald-900/40 text-emerald-400' : 'bg-orange-900/40 text-orange-400'}">${r.decision}</span></td>
+            <td class="px-4 py-3">
+              ${r.has_sheet ? `<button onclick="openSheetModal('${r.id}')" class="text-brand-400 hover:text-brand-300 flex items-center space-x-1"><i class="fa-solid fa-image"></i><span>View Sheet</span></button>` : '<span class="text-slate-600">None</span>'}
+            </td>
+            <td class="px-4 py-3 text-right">
+              <button onclick="inspectRunModal('${r.id}')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs">
+                Inspect Report
+              </button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-8 text-center text-red-400">Failed to load runs: ${err.message}</td></tr>`;
+      }
+    }
+
+    // Inspect Run Modal
+    async function inspectRunModal(runId) {
+      try {
+        const res = await fetch(`/api/runs/${runId}`);
+        const data = await res.json();
+
+        document.getElementById('modal-title').innerText = `Run Details: ${runId}`;
+        const modalBody = document.getElementById('modal-body');
+
+        let html = `
+          <div class="space-y-4">
+            <div class="p-3 bg-slate-950 rounded-lg border border-slate-800 font-mono text-xs whitespace-pre-wrap max-h-96 overflow-y-auto">${data.markdown || JSON.stringify(data.data, null, 2)}</div>
+        `;
+
+        if (data.has_sheet) {
+          html += `
+            <div class="space-y-2">
+              <div class="text-xs font-semibold text-slate-300">Tournament Contact Sheet</div>
+              <img src="/api/runs/${runId}/sheet" class="w-full rounded border border-slate-800 cursor-pointer" onclick="openLightbox('/api/runs/${runId}/sheet')">
+            </div>
+          `;
+        }
+
+        // Feedback form to train the judge
+        html += `
+          <div class="p-4 bg-slate-950/60 rounded-xl border border-indigo-900/40 space-y-3">
+            <div class="text-xs font-bold text-white flex items-center space-x-2">
+              <i class="fa-solid fa-graduation-cap text-indigo-400"></i>
+              <span>Teach the AI Judge Your Taste</span>
+            </div>
+            <div class="grid grid-cols-2 gap-3 text-xs">
+              <div>
+                <label class="block text-slate-400 mb-1">Preferred Candidate (e.g. C1, C2)</label>
+                <input type="text" id="fb-pref" placeholder="C1" class="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-white">
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Rating (1 to 5 Stars)</label>
+                <select id="fb-rating" class="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-white">
+                  <option value="5">⭐⭐⭐⭐⭐ 5 Stars</option>
+                  <option value="4" selected>⭐⭐⭐⭐ 4 Stars</option>
+                  <option value="3">⭐⭐⭐ 3 Stars</option>
+                  <option value="2">⭐⭐ 2 Stars</option>
+                  <option value="1">⭐ 1 Star</option>
+                </select>
+              </div>
+            </div>
+            <button onclick="submitFeedback('${runId}')" class="px-4 py-2 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs transition">
+              Submit Feedback & Train Judge
+            </button>
+          </div>
+        </div>`;
+
+        modalBody.innerHTML = html;
+        document.getElementById('modal-container').classList.remove('hidden');
+      } catch (err) {
+        alert("Failed to load run details: " + err);
+      }
+    }
+
+    async function submitFeedback(runId) {
+      const pref = document.getElementById('fb-pref').value.trim();
+      const rating = parseInt(document.getElementById('fb-rating').value);
+
+      try {
+        const res = await fetch('/api/feedback', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({run_id: runId, preferred: pref || null, rating: rating})
+        });
+        const data = await res.json();
+        alert("Feedback submitted! Judge weights updated: " + (data.events ? data.events.join(", ") : "Success"));
+        closeModal();
+      } catch (err) {
+        alert("Error submitting feedback: " + err);
+      }
+    }
+
+    // Sheet Modal
+    function openSheetModal(runId) {
+      openLightbox(`/api/runs/${runId}/sheet`);
+    }
+
+    function openLightbox(imgSrc) {
+      document.getElementById('modal-title').innerText = 'Tournament Contact Sheet';
+      document.getElementById('modal-body').innerHTML = `<img src="${imgSrc}" class="w-full rounded">`;
+      document.getElementById('modal-container').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('modal-container').classList.add('hidden');
+    }
+
+    // Load Models Catalogue
+    async function loadModelsCatalogue() {
+      const tbody = document.getElementById('models-table-body');
+      const cfgModelSelect = document.getElementById('cfg-model');
+
+      try {
+        const res = await fetch('/api/models');
+        const data = await res.json();
+
+        tbody.innerHTML = '';
+        cfgModelSelect.innerHTML = '<option value="" selected>Auto (Tournament selects optimal model)</option>';
+
+        data.models.forEach(m => {
+          const row = document.createElement('tr');
+          row.className = 'hover:bg-slate-900/50 transition-colors';
+          row.innerHTML = `
+            <td class="px-4 py-3 font-mono font-medium text-slate-200">${m.id}</td>
+            <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-[10px] font-semibold ${m.status === 'active' ? 'bg-emerald-900/40 text-emerald-300' : 'bg-yellow-900/40 text-yellow-300'}">${m.status}</span></td>
+            <td class="px-4 py-3 capitalize text-slate-300">${m.domain}</td>
+            <td class="px-4 py-3 font-mono text-slate-400">${m.speed}</td>
+            <td class="px-4 py-3 text-slate-400 font-mono text-[11px]">${m.licence}</td>
+            <td class="px-4 py-3 text-slate-400 font-mono">${m.trials}</td>
+            <td class="px-4 py-3 text-slate-300 font-bold font-mono">${m.wins}</td>
+            <td class="px-4 py-3 text-slate-400 font-mono">${m.measured_speed}</td>
+          `;
+          tbody.appendChild(row);
+
+          // Populate select
+          const opt = document.createElement('option');
+          opt.value = m.id;
+          opt.innerText = `${m.id} (${m.domain}, ${m.speed})`;
+          cfgModelSelect.appendChild(opt);
+        });
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-8 text-center text-red-400">Failed to load models: ${err.message}</td></tr>`;
+      }
+    }
+
+    // Trigger Model Update Check
+    async function triggerModelUpdateCheck() {
+      if (!confirm("Check GitHub repositories for newly released models and engine builds?")) return;
+      try {
+        const res = await fetch('/api/models/update', {method: 'POST'});
+        const data = await res.json();
+        alert("Update check completed!\n" + (data.events.length > 0 ? data.events.join("\n") : "Everything is already up to date."));
+        await loadModelsCatalogue();
+      } catch (err) {
+        alert("Failed to check updates: " + err);
+      }
+    }
+
+    // Initialization
+    window.addEventListener('DOMContentLoaded', async () => {
+      await loadSystemStatus();
+      await loadVideosList();
+      await loadModelsCatalogue();
+    });
+  </script>
+</body>
+</html>
