@@ -27,3 +27,4 @@ Upscale Pro 4K is an intelligent, self-improving local AI video upscaling system
   - Updated `requirements.txt` to include `fastapi`, `uvicorn`, and `python-multipart`.
   - Updated `README.md` to document the new local web server studio and access URL.
   - Linked the TECH IMPACT Watermark Studio (:8501) directly into the Upscale Pro 4K header navigation.
+  - Successfully shut down and released both local web servers (`127.0.0.1:8000` and `localhost:8501`).
