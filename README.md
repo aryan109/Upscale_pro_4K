@@ -14,6 +14,16 @@ py -3.11 web_server.py
 ```
 Then navigate to: **`http://127.0.0.1:8000`** in your browser.
 
+### Telegram Bot (Invite-Only Remote Service)
+Double-click **`run_telegram_bot.bat`**, or run:
+```bash
+py -3.11 telegram_bot.py
+```
+- **Access Control:** Requires a secret invite code (`UPSCALE-XXXXXX`). Unauthorized users are blocked until they send a valid code.
+- **Master Admin Code:** Run `py -3.11 telegram_bot.py --master-code` to view your admin key. Entering it in Telegram grants full admin controls.
+- **Generate Codes:** Admins can generate new invite codes via `/newcode [note]` in Telegram or via the Web Dashboard.
+- **Uncompressed Delivery:** Returns upscaled videos strictly in **File/Document format** to preserve 100% 4K resolution and bitrate without Telegram downscaling.
+
 ### Command Line
 Drag a video onto **`Upscale.bat`**, or run:
 

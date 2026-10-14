@@ -35,3 +35,4 @@ uploads/
 
 # Run artifacts & temporary caches
 data/runs/
+data/telegram_auth.json

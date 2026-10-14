@@ -93,6 +93,10 @@
           <i class="fa-solid fa-microchip text-xs"></i>
           <span>AI Models</span>
         </button>
+        <button onclick="switchTab('telegram')" id="tab-telegram" class="px-4 py-2 rounded-lg text-sm text-slate-300 hover:text-white transition-all flex items-center space-x-2">
+          <i class="fa-brands fa-telegram text-xs text-sky-400"></i>
+          <span>Telegram Bot</span>
+        </button>
         <button onclick="switchTab('architecture')" id="tab-architecture" class="px-4 py-2 rounded-lg text-sm text-slate-300 hover:text-white transition-all flex items-center space-x-2">
           <i class="fa-solid fa-circle-info text-xs"></i>
           <span>Architecture</span>
@@ -583,6 +587,170 @@
     </div>
 
     <!-- ===================================================================== -->
+    <!-- TAB: TELEGRAM BOT & ACCESS CODES -->
+    <!-- ===================================================================== -->
+    <div id="view-telegram" class="hidden space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-bold text-white flex items-center space-x-2">
+            <i class="fa-brands fa-telegram text-sky-400"></i>
+            <span>Telegram Bot Integration & Invite System</span>
+          </h2>
+          <p class="text-xs text-slate-400">Manage private access codes, track connected users, and monitor remote upscaling</p>
+        </div>
+        <button onclick="loadTelegramData()" class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 border border-slate-700 transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-arrows-rotate text-xs"></i>
+          <span>Refresh</span>
+        </button>
+      </div>
+
+      <!-- Master Code & Status Card -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="glass-card p-5 space-y-2 md:col-span-2">
+          <div class="flex items-center justify-between">
+            <div class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Master Administrator Code</div>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">Full Control</span>
+          </div>
+          <div class="flex items-center space-x-3 pt-1">
+            <div id="tg-master-code" class="px-4 py-2 rounded-lg bg-slate-900 border border-slate-700 font-mono text-base font-bold text-accent-cyan tracking-wider select-all">
+              Loading...
+            </div>
+            <button onclick="copyMasterCode()" class="px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 transition flex items-center space-x-1.5">
+              <i class="fa-regular fa-copy"></i>
+              <span>Copy</span>
+            </button>
+          </div>
+          <p class="text-[11px] text-slate-400 pt-1 leading-relaxed">
+            Entering this Master Code in Telegram grants automatic Administrator permissions, allowing you to generate and revoke invite codes directly in chat.
+          </p>
+        </div>
+
+        <div class="glass-card p-5 space-y-3">
+          <div class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Bot Service Status</div>
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-400">Telegram Token:</span>
+              <span id="tg-token-status" class="font-semibold text-emerald-400">Configured</span>
+            </div>
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-400">Authorized Users:</span>
+              <span id="tg-user-count" class="font-bold text-white">0</span>
+            </div>
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-400">Active Codes:</span>
+              <span id="tg-code-count" class="font-bold text-white">0</span>
+            </div>
+          </div>
+          <div class="pt-2 border-t border-slate-800 text-[11px] text-slate-400">
+            Launch bot with <code class="px-1 py-0.5 rounded bg-slate-900 font-mono text-sky-400">run_telegram_bot.bat</code>
+          </div>
+        </div>
+      </div>
+
+      <!-- Generate Invite Code Box -->
+      <div class="glass-card p-6 space-y-4">
+        <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+          <i class="fa-solid fa-key text-amber-400 text-xs"></i>
+          <span>Generate Secret Invite Code for Telegram</span>
+        </h3>
+        <p class="text-xs text-slate-400">Create a unique access code to share with a specific friend, team member, or client.</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end">
+          <div class="sm:col-span-5 space-y-1">
+            <label class="block text-xs font-medium text-slate-300">Recipient Note / Name</label>
+            <input type="text" id="code-note" placeholder="e.g. Alex VIP, Project Beta" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+          </div>
+
+          <div class="sm:col-span-3 space-y-1">
+            <label class="block text-xs font-medium text-slate-300">Max Uses</label>
+            <input type="number" id="code-max-uses" value="1" min="1" max="100" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+          </div>
+
+          <div class="sm:col-span-2 flex items-center space-x-2 pb-2.5">
+            <label class="flex items-center space-x-2 text-xs text-slate-300 cursor-pointer">
+              <input type="checkbox" id="code-is-admin" class="rounded text-brand-500">
+              <span>Admin Role</span>
+            </label>
+          </div>
+
+          <div class="sm:col-span-2">
+            <button onclick="createTelegramCode()" class="w-full py-2.5 px-4 rounded-lg bg-gradient-to-r from-sky-600 to-indigo-600 hover:opacity-95 text-white text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-md shadow-sky-600/20">
+              <i class="fa-solid fa-plus text-xs"></i>
+              <span>Generate</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Generated Code Banner (Hidden until generated) -->
+        <div id="new-code-banner" class="hidden p-4 rounded-xl bg-slate-900/90 border border-sky-500/40 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-sky-300 flex items-center space-x-1.5">
+              <i class="fa-solid fa-circle-check"></i>
+              <span>New Invite Code Ready to Share!</span>
+            </span>
+            <button onclick="copyShareMessage()" class="px-3 py-1 rounded bg-sky-600 hover:bg-sky-500 text-white text-xs font-medium transition flex items-center space-x-1">
+              <i class="fa-regular fa-copy"></i>
+              <span>Copy Invitation Message</span>
+            </button>
+          </div>
+          <div id="share-snippet" class="p-3 bg-black/60 rounded-lg border border-slate-800 font-mono text-xs text-slate-200 select-all whitespace-pre-wrap"></div>
+        </div>
+      </div>
+
+      <!-- Codes & Users Tables -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Invite Codes Table -->
+        <div class="lg:col-span-7 glass-card overflow-hidden space-y-3 p-5">
+          <div class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center space-x-2">
+            <i class="fa-solid fa-ticket text-brand-400"></i>
+            <span>Invite Codes</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-900/90 text-slate-400 uppercase font-semibold text-[10px] tracking-wider border-b border-slate-800">
+                <tr>
+                  <th class="px-3 py-2.5">Code</th>
+                  <th class="px-3 py-2.5">Note</th>
+                  <th class="px-3 py-2.5">Uses</th>
+                  <th class="px-3 py-2.5">Status</th>
+                  <th class="px-3 py-2.5 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="tg-codes-table-body" class="divide-y divide-slate-800/60">
+                <tr><td colspan="5" class="px-3 py-6 text-center text-slate-500">Loading codes...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Authorized Users Table -->
+        <div class="lg:col-span-5 glass-card overflow-hidden space-y-3 p-5">
+          <div class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center space-x-2">
+            <i class="fa-solid fa-users text-emerald-400"></i>
+            <span>Authorized Telegram Users</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-900/90 text-slate-400 uppercase font-semibold text-[10px] tracking-wider border-b border-slate-800">
+                <tr>
+                  <th class="px-3 py-2.5">User</th>
+                  <th class="px-3 py-2.5">Role</th>
+                  <th class="px-3 py-2.5">Auth Date</th>
+                  <th class="px-3 py-2.5 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="tg-users-table-body" class="divide-y divide-slate-800/60">
+                <tr><td colspan="4" class="px-3 py-6 text-center text-slate-500">No users yet</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
     <!-- TAB 4: ARCHITECTURE -->
     <!-- ===================================================================== -->
     <div id="view-architecture" class="hidden space-y-6">
@@ -651,7 +819,7 @@
 
     // Tab switching
     function switchTab(tabId) {
-      const tabs = ['studio', 'runs', 'models', 'architecture'];
+      const tabs = ['studio', 'runs', 'models', 'telegram', 'architecture'];
       tabs.forEach(t => {
         const view = document.getElementById(`view-${t}`);
         const btn = document.getElementById(`tab-${t}`);
@@ -666,6 +834,7 @@
 
       if (tabId === 'runs') loadRunsHistory();
       if (tabId === 'models') loadModelsCatalogue();
+      if (tabId === 'telegram') loadTelegramData();
     }
 
     // Load System & Status
@@ -1245,6 +1414,159 @@
         await loadModelsCatalogue();
       } catch (err) {
         alert("Failed to check updates: " + err);
+      }
+    }
+
+    // Telegram Bot & Auth Management
+    let currentMasterCode = "";
+    let latestShareText = "";
+
+    async function loadTelegramData() {
+      try {
+        // Status & Master Code
+        const resStatus = await fetch('/api/telegram/status');
+        const st = await resStatus.json();
+        currentMasterCode = st.master_code;
+        document.getElementById('tg-master-code').innerText = st.master_code;
+        document.getElementById('tg-user-count').innerText = st.total_users;
+        document.getElementById('tg-code-count').innerText = st.total_codes;
+        document.getElementById('tg-token-status').innerText = st.configured ? 'Configured (Active)' : 'Needs Token in .env';
+        document.getElementById('tg-token-status').className = st.configured ? 'font-semibold text-emerald-400' : 'font-semibold text-amber-400';
+
+        // Codes
+        const resCodes = await fetch('/api/telegram/codes');
+        const codesData = await resCodes.json();
+        renderTelegramCodes(codesData.codes);
+
+        // Users
+        const resUsers = await fetch('/api/telegram/users');
+        const usersData = await resUsers.json();
+        renderTelegramUsers(usersData.users);
+      } catch (err) {
+        console.error("Failed to load telegram data:", err);
+      }
+    }
+
+    function renderTelegramCodes(codes) {
+      const tbody = document.getElementById('tg-codes-table-body');
+      if (!codes || codes.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-6 text-center text-slate-500">No codes generated yet</td></tr>';
+        return;
+      }
+      tbody.innerHTML = '';
+      codes.forEach(c => {
+        const isRevoked = c.revoked;
+        const isExhausted = c.max_uses > 0 && c.times_used >= c.max_uses;
+        let statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-900/40 text-emerald-300">Active</span>';
+        if (isRevoked) {
+          statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-red-900/40 text-red-300">Revoked</span>';
+        } else if (isExhausted) {
+          statusBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-400">Used</span>';
+        }
+
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-slate-900/50 transition-colors';
+        row.innerHTML = `
+          <td class="px-3 py-2.5 font-mono font-bold text-accent-cyan select-all">${c.code}</td>
+          <td class="px-3 py-2.5 text-slate-300">${c.note || '-'}</td>
+          <td class="px-3 py-2.5 font-mono">${c.times_used} / ${c.max_uses > 0 ? c.max_uses : '∞'}</td>
+          <td class="px-3 py-2.5">${statusBadge}</td>
+          <td class="px-3 py-2.5 text-right">
+            ${!isRevoked ? `<button onclick="revokeTelegramCode('${c.code}')" class="px-2 py-1 rounded bg-red-900/30 hover:bg-red-800/50 text-red-300 border border-red-800/40 text-[11px] transition">Revoke</button>` : '<span class="text-slate-600 text-[11px]">Revoked</span>'}
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function renderTelegramUsers(users) {
+      const tbody = document.getElementById('tg-users-table-body');
+      if (!users || users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="px-3 py-6 text-center text-slate-500">No authorized Telegram users yet</td></tr>';
+        return;
+      }
+      tbody.innerHTML = '';
+      users.forEach(u => {
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-slate-900/50 transition-colors';
+        const roleBadge = u.is_admin ? '<span class="px-1.5 py-0.5 rounded bg-amber-900/40 text-amber-300 font-bold text-[10px]">Admin</span>' : '<span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px]">User</span>';
+        const name = u.username ? `@${u.username}` : (u.first_name || u.user_id);
+
+        row.innerHTML = `
+          <td class="px-3 py-2.5 font-medium text-slate-200">
+            <div>${name}</div>
+            <div class="text-[10px] text-slate-500 font-mono">${u.user_id}</div>
+          </td>
+          <td class="px-3 py-2.5">${roleBadge}</td>
+          <td class="px-3 py-2.5 text-[11px] text-slate-400 font-mono">${u.authorized_at || '-'}</td>
+          <td class="px-3 py-2.5 text-right">
+            <button onclick="revokeTelegramUser('${u.user_id}')" class="px-2 py-1 rounded bg-red-900/30 hover:bg-red-800/50 text-red-300 border border-red-800/40 text-[11px] transition">Revoke</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    async function createTelegramCode() {
+      const note = document.getElementById('code-note').value.trim();
+      const maxUses = parseInt(document.getElementById('code-max-uses').value) || 1;
+      const isAdmin = document.getElementById('code-is-admin').checked;
+
+      try {
+        const res = await fetch('/api/telegram/codes', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({note: note, max_uses: maxUses, is_admin: isAdmin})
+        });
+        const data = await res.json();
+        const code = data.code;
+
+        latestShareText = `🎟️ Here is your private invite code for Upscale Pro 4K:\n\n${code}\n\nSend this code to the Telegram bot to unlock access and start upscaling your videos in 4K!`;
+        document.getElementById('share-snippet').innerText = latestShareText;
+        document.getElementById('new-code-banner').classList.remove('hidden');
+
+        document.getElementById('code-note').value = '';
+        await loadTelegramData();
+      } catch (err) {
+        alert("Failed to generate code: " + err);
+      }
+    }
+
+    function copyShareMessage() {
+      navigator.clipboard.writeText(latestShareText);
+      alert("Invitation message copied to clipboard! You can paste and send it to your recipient.");
+    }
+
+    function copyMasterCode() {
+      navigator.clipboard.writeText(currentMasterCode);
+      alert("Master Admin Code copied to clipboard: " + currentMasterCode);
+    }
+
+    async function revokeTelegramCode(code) {
+      if (!confirm(`Are you sure you want to revoke invite code ${code}?`)) return;
+      try {
+        await fetch('/api/telegram/codes/revoke', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({code: code})
+        });
+        await loadTelegramData();
+      } catch (err) {
+        alert("Failed to revoke code: " + err);
+      }
+    }
+
+    async function revokeTelegramUser(userId) {
+      if (!confirm(`Are you sure you want to revoke Telegram user ${userId}?`)) return;
+      try {
+        await fetch('/api/telegram/users/revoke', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({user_id: userId})
+        });
+        await loadTelegramData();
+      } catch (err) {
+        alert("Failed to revoke user: " + err);
       }
     }
 

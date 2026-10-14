@@ -38,6 +38,7 @@ from engine.knowledge import Knowledge
 from engine.probe import probe
 from engine.registry import Registry
 from engine.strategy import analysis_filters, geometry
+from engine.telegram_auth import auth_manager
 
 app = FastAPI(title="Upscale Pro 4K Web Server", version="1.0.0")
 
@@ -591,6 +592,67 @@ def stream_media(path: str):
         ".jpg": "image/jpeg",
     }
     return FileResponse(p, media_type=mimes.get(ext, "application/octet-stream"))
+
+
+# ---------------------------------------------------------------------------
+# Telegram Bot & Invite Codes API
+# ---------------------------------------------------------------------------
+class GenerateCodeRequest(BaseModel):
+    note: str = ""
+    max_uses: int = 1
+    is_admin: bool = False
+
+
+class RevokeCodeRequest(BaseModel):
+    code: str
+
+
+class RevokeUserRequest(BaseModel):
+    user_id: str
+
+
+@app.get("/api/telegram/status")
+def get_telegram_status():
+    token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+    return {
+        "configured": bool(token),
+        "master_code": auth_manager.get_master_code(),
+        "total_codes": len(auth_manager.list_codes()),
+        "total_users": len(auth_manager.list_users()),
+    }
+
+
+@app.get("/api/telegram/codes")
+def get_telegram_codes():
+    return {
+        "master_code": auth_manager.get_master_code(),
+        "codes": auth_manager.list_codes(),
+    }
+
+
+@app.post("/api/telegram/codes")
+def create_telegram_code(req: GenerateCodeRequest):
+    code = auth_manager.generate_code(
+        note=req.note, max_uses=req.max_uses, is_admin=req.is_admin, created_by="web_dashboard"
+    )
+    return {"status": "success", "code": code}
+
+
+@app.post("/api/telegram/codes/revoke")
+def revoke_telegram_code(req: RevokeCodeRequest):
+    success = auth_manager.revoke_code(req.code)
+    return {"status": "success" if success else "not_found"}
+
+
+@app.get("/api/telegram/users")
+def get_telegram_users():
+    return {"users": auth_manager.list_users()}
+
+
+@app.post("/api/telegram/users/revoke")
+def revoke_telegram_user(req: RevokeUserRequest):
+    success = auth_manager.revoke_user(req.user_id)
+    return {"status": "success" if success else "not_found"}
 
 
 # ---------------------------------------------------------------------------
