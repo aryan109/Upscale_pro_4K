@@ -2,13 +2,18 @@
 from __future__ import annotations
 
 import json
+import os
 import secrets
 import string
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+from dotenv import load_dotenv
+
 from .common import DATA_DIR, load_json, log, save_json
+
+load_dotenv()
 
 AUTH_FILE = DATA_DIR / "telegram_auth.json"
 
@@ -38,12 +43,26 @@ class TelegramAuthManager:
             # First initialization
             save_json(self.path, default)
             log(f"[Telegram Auth] Initialized new auth database. Master Code: {default['master_code']}")
-            return default
+            loaded = default
 
         # Ensure all required keys exist
         for k, v in default.items():
             if k not in loaded:
                 loaded[k] = v
+
+        # Check if an admin chat ID is pre-configured in environment
+        admin_env = os.getenv("TELEGRAM_ADMIN_CHAT_ID", "").strip()
+        if admin_env and admin_env not in [str(u) for u in loaded.get("admin_users", [])]:
+            loaded.setdefault("admin_users", []).append(admin_env)
+            loaded.setdefault("authorized_users", {})[admin_env] = {
+                "username": "Owner",
+                "first_name": "Admin",
+                "authorized_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+                "code_used": "ENV_PREAUTHORIZED",
+                "is_admin": True,
+            }
+            save_json(self.path, loaded)
+
         return loaded
 
     def save(self) -> None:
