@@ -66,18 +66,24 @@ active_job_info: Optional[Dict[str, Any]] = None
 # ---------------------------------------------------------------------------
 def get_bot_token() -> Optional[str]:
     # Check environment or .env
-    token = os.getenv("TELEGRAM_BOT_TOKEN")
-    if token and token.strip():
-        return token.strip()
-    # Try reading from .env file directly
-    env_path = ROOT / ".env"
-    if env_path.exists():
-        for line in env_path.read_text(encoding="utf-8", errors="ignore").splitlines():
-            line = line.strip()
-            if line.startswith("TELEGRAM_BOT_TOKEN="):
-                val = line.split("=", 1)[1].strip().strip('"').strip("'")
-                if val:
-                    return val
+    token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip().strip('"').strip("'")
+    bot_id = (os.getenv("TELEGRAM_BOT_ID") or os.getenv("TELEGRAM_ADMIN_CHAT_ID", "")).strip().strip('"').strip("'")
+
+    if not token:
+        env_path = ROOT / ".env"
+        if env_path.exists():
+            for line in env_path.read_text(encoding="utf-8", errors="ignore").splitlines():
+                line = line.strip()
+                if line.startswith("TELEGRAM_BOT_TOKEN="):
+                    token = line.split("=", 1)[1].strip().strip('"').strip("'")
+                elif line.startswith("TELEGRAM_BOT_ID="):
+                    bot_id = line.split("=", 1)[1].strip().strip('"').strip("'")
+
+    if token:
+        # If token does not contain ':', but bot_id exists and is numeric, combine them
+        if ":" not in token and bot_id and bot_id.isdigit():
+            token = f"{bot_id}:{token}"
+        return token
     return None
 
 

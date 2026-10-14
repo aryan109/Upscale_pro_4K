@@ -54,4 +54,5 @@ Upscale Pro 4K is an intelligent, self-improving local AI video upscaling system
   - Added Telegram management REST endpoints to `web_server.py` (`/api/telegram/status`, `/api/telegram/codes`, `/api/telegram/users`).
   - Added Telegram Bot management tab in `web_ui.html` with real-time status, code generator, copyable invitation snippet, and user tracking.
   - Updated `README.md` with Telegram bot documentation.
-  - Immediately stopped the Telegram bot service and cleared all temporary credentials from `.env` and `data/telegram_auth.json` as requested, awaiting user's new dedicated bot token and bot ID.
+  - Successfully connected and activated the dedicated Telegram bot **@scaler_pro_4K_bot** (`https://t.me/scaler_pro_4K_bot`).
+  - Active background queue running with Vulkan GPU neural upscaling and invite code authorization.
